@@ -60,7 +60,7 @@ module RNGTest
 		function fillcache{T}(g::WrappedRNG{T})
 			if g.TRNGflag
 				println("g.TRNGflag is true")
-				if g.fillarray
+				#if g.fillarray
 					
 			
 			else
