@@ -1,7 +1,8 @@
 module RNGTest
 
 		using Compat
-
+		using myGA3
+		
 		import Base: convert, getindex, pointer
 
 		const libtestu01 = joinpath(pwd(), "deps", "libtestu01wrapper")
@@ -26,8 +27,9 @@ module RNGTest
 		@compat typealias TestableNumbers Union{Int8, UInt8, Int16, UInt16, Int32, UInt32,
 				Int64, UInt64, Int128, UInt128, Float16, Float32, Float64}
 
-		type WrappedRNG{T<:TestableNumbers, RNG<:AbstractRNG}
+		type WrappedRNG{T<:TestableNumbers, RNG<:Any}
 				rng::RNG
+				rng_f::Function
 				cache::Vector{T}
 				fillarray::Bool
 				vals::Vector{UInt32}
@@ -49,20 +51,37 @@ module RNGTest
 							pointer_to_array(convert(Ptr{UInt32}, pointer(cache)), sizeof(cache)÷sizeof(UInt32)),
 							0, TRNGflag)) # 0 is a dummy value, which will be set correctly by fillcache
 		end
+		
+		function WrappedRNG{RNG,T}(rng::RNG,rng_f::Function, TRNGflag::Bool, ::Type{T}, fillarray = true, cache_size = 3*2^11 ÷ sizeof(T))
+				
+				if T <: Integer && cache_size*sizeof(T) % sizeof(UInt32) != 0
+						error("cache_size must be a multiple of $(Int(4/sizeof(T))) (for type $T)")
+				elseif T === Float16 && cache_size % 6 != 0 || T === Float32 && cache_size % 3 != 0
+						error("cache_size must be a multiple of 3 (resp. 6) for Float32 (resp. Float16)")
+				end
+				cache = zeros(T, 4*cache_size)
+				
+				fillcache(WrappedRNG{T, RNG}(rng, rng_f, cache, fillarray,
+ 							pointer_to_array(convert(Ptr{UInt32}, pointer(cache)), sizeof(cache)÷sizeof(UInt32)),
+ 							0, TRNGflag)) # 0 is a dummy value, which will be set correctly by fillcache
+		end
+		
+		
+		
 
 		# The ability to play with the cache size and the fillarray option is for advanced uses,
 		# when one wants to test different code path of the particular RNG implementations, like
 		# MersenneTwister from Base.
 		# For now let's document only the type parameter in the wrap function:
 		wrap{T<:TestableNumbers}(rng::AbstractRNG, TRNGflag::Bool, ::Type{T}) = WrappedRNG(rng,TRNGflag, T)
-
+		wrap{T<:TestableNumbers}(rng::myGA3.AbstractRNG, rng_f::Function, TRNGflag::Bool,::Type{T}) = WrappedRNG(rng, rng_f,TRNGflag, T)
 
 		function fillcache{T}(g::WrappedRNG{T})
 			if g.TRNGflag
-				println("g.TRNGflag is true")
-				#if g.fillarray
-					
-			
+				if g.fillarray==true
+					g.cache = copy(getSuperJuice(T,length(g.cache)))
+					gc()
+				end
 			else
 				println("g.TRNGflag is false")
 				if g.fillarray
@@ -72,8 +91,8 @@ module RNGTest
 								@inbounds g.cache[i] = rand(g.rng, T)
 						end
 				end
-				g.idx = 0
 			end
+			g.idx = 0
 			return g
 		end
 
