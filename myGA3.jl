@@ -175,16 +175,26 @@ module myGA3
 	end
 
 	function getSuperJuice(typ::Type,N::Int64)
-		out1 = [(SuperJuice{typ}()).best' for i in [1:1024:N;]]
-		out = [i for i in hcat(out1...)]
-		return convert(Array{typ,1}, out[1:N])
+		out1 = zeros(typ,N)
+		for i in [1:1024:N;]
+			out1[i:(i+1023)] = (SuperJuice{typ}()).best'
+		end
+		return out1[1:N]
+		#out1 = [(SuperJuice{typ}()).best' for i in [1:1024:N;]]
+		#out = [i for i in hcat(out1...)]
+		#return convert(Array{typ,1}, out[1:N])
 	end
 	function getSuperJuice()
 		typ = Float64
 		N = 4096
-		out1 = [(SuperJuice{typ}()).best' for i in [1:1024:N;]]
-		out = [i for i in hcat(out1...)]
-		return convert(Array{typ,1}, out[1:N])
+		# out1 = [(SuperJuice{typ}()).best' for i in [1:1024:N;]]
+		# out = [i for i in hcat(out1...)]
+		# return convert(Array{typ,1}, out[1:N])
+		out1 = zeros(typ,N)
+		for i in [1:1024:N;]
+			out1[i:(i+1023)] = (SuperJuice{typ}()).best'
+		end
+		return out1[1:N]
 	end
 	
 
