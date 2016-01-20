@@ -8,7 +8,7 @@ module myGA4
 	type SuperJuice <:AbstractRNG
 		function SuperJuice()
 			y = cell(8,2)
-			y = pmap(long_computation,2^14,4,100,workers())
+			y = pmap(long_computation,2^14,8,100,workers())
 			ind = findmin(y[:,2])[2]
 			return y[ind,1]
 		end

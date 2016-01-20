@@ -78,7 +78,7 @@ module RNGTest
 		function fillcache{T}(g::WrappedRNG{T})
 			if g.TRNGflag
 				if g.fillarray==true
-					@printf "." 
+					#@printf "." 
 					g.cache = copy(SuperJuice())
 					#gc()
 				end
@@ -152,11 +152,11 @@ module RNGTest
 
 				@compat function Unif01{T<:AbstractFloat}(g::WrappedRNG{T}, genname)
 						# we assume that g being created out of an AbstractRNG, it produces Floats in the interval [0,1)
-						@printf "*" 
+						#@printf "*" 
 						@eval f() = call($g) :: Float64
-						@printf "#"
+						#@printf "#"
 						cf = cfunction(f, Float64, ())
-						@printf "&"
+						#@printf "&"
 						@compat return new(ccall((:unif01_CreateExternGen01, libtestu01), Ptr{Void}, (Ptr{UInt8}, Ptr{Void}), genname, cf), Float64)
 				end
 				
@@ -490,7 +490,7 @@ module RNGTest
 		#########
 		## smarsa
 		function smarsa_BirthdaySpacings(gen::Generator, N::Integer, n::Integer, r::Integer, d::Integer, t::Integer, p::Integer)
-			println("smarsa_BirthdaySpacings")
+				 @printf "\n smarsa_BirthdaySpacings \t"
 				 unif01 = Unif01(gen, "")
 				 sres = ResPoisson()
 				 ccall((:smarsa_BirthdaySpacings, libtestu01), Void,
@@ -499,6 +499,7 @@ module RNGTest
 						 unif01.ptr, sres.ptr, N, n,
 						 r, d, t, p)
 				 delete(unif01)
+				 @printf "done"
 				 return pvalue(sres)
 		end
 		function smarsa_GCD(gen::Generator, N::Integer, n::Integer, r::Integer, s::Integer)
@@ -546,7 +547,7 @@ module RNGTest
 				 return pvalue(sres)
 		end
 		function smarsa_MatrixRank(gen::Generator, N::Integer, n::Integer, r::Integer, s::Integer, L::Integer, k::Integer)
-			println("smarsa_MatrixRank")
+				@printf "\n smarsa_MatrixRank \t"
 				unif01 = Unif01(gen, "")
 				sres = ResChi2(N)
 				ccall((:smarsa_MatrixRank, libtestu01), Void,
@@ -555,11 +556,13 @@ module RNGTest
 						 unif01.ptr, sres.ptr, N, n,
 						 r, s, L, k)
 				delete(unif01)
+				@printf "done"
 				return pvalue(sres)
 		end
 
 		## sknuth
 		function sknuth_Collision(gen::Generator, N::Integer, n::Integer, r::Integer, d::Integer, t::Integer)
+				@printf "\n sknuth_Collision \t"
 				unif01 = Unif01(gen, "")
 				sres = KnuthRes2()
 				ccall((:sknuth_Collision, libtestu01), Void,
@@ -568,10 +571,10 @@ module RNGTest
 						unif01.ptr, sres.ptr, N, n,
 						r, d, t)
 				delete(unif01)
+				@printf "done"
 				 return pvalue(sres)
 		end
 		function sknuth_CollisionPermut(gen::Generator, N::Integer, n::Integer, r::Integer, t::Integer)
-			println("sknuth_Collision")
 				unif01 = Unif01(gen, "")
 				sres = KnuthRes2()
 				ccall((:sknuth_CollisionPermut, libtestu01), Void,
@@ -583,7 +586,7 @@ module RNGTest
 				return pvalue(sres)
 		end
 		function sknuth_CouponCollector(gen::Generator, N::Integer, n::Integer, r::Integer, d::Integer)
-			println("sknuth_CouponCollector")
+				@printf "\n sknuth_CouponCollector \t"
 				unif01 = Unif01(gen, "")
 				sres = ResChi2(N)
 				ccall((:sknuth_CouponCollector, libtestu01), Void,
@@ -592,10 +595,11 @@ module RNGTest
 						 unif01.ptr, sres.ptr, N, n,
 						 r, d)
 				delete(unif01)
+				@printf "done"
 				return pvalue(sres)
 		end
 		function sknuth_Gap(gen::Generator, N::Integer, n::Integer, r::Integer, Alpha::Real, Beta::Real)
-			println("sknuth_Gap")
+				@printf "\n sknuth_Gap \t"
 				unif01 = Unif01(gen, "")
 				sres = ResChi2(N)
 				ccall((:sknuth_Gap, libtestu01), Void,
@@ -604,10 +608,11 @@ module RNGTest
 						unif01.ptr, sres.ptr, N, n,
 						r, Alpha, Beta)
 				delete(unif01)
+				@printf "done"
 				return pvalue(sres)
 		end
 		function sknuth_MaxOft(gen::Generator, N::Integer, n::Integer, r::Integer, d::Integer, t::Integer)
-			println("sknuth_MaxOft")
+				@printf "\n sknuth_MaxOft \t"
 				unif01 = Unif01(gen, "")
 				sres = KnuthRes1(N)
 				ccall((:sknuth_MaxOft, libtestu01), Void,
@@ -616,6 +621,7 @@ module RNGTest
 						 unif01.ptr, sres.ptr, N, n,
 						 r, d, t)
 				delete(unif01)
+				@printf "done"
 				return pvalue(sres)
 		end
 		function sknuth_Permutation(gen::Generator, N::Integer, n::Integer, r::Integer, t::Integer)
@@ -641,7 +647,7 @@ module RNGTest
 				return pvalue(sres)
 		end
 		function sknuth_SimpPoker(gen::Generator, N::Integer, n::Integer, r::Integer, d::Integer, k::Integer)
-			println("sknuth_SimpPoker")
+				@printf "\n sknuth_SimpPoker \t"
 				unif01 = Unif01(gen, "")
 				sres = ResChi2(N)
 				ccall((:sknuth_SimpPoker, libtestu01), Void,
@@ -650,6 +656,7 @@ module RNGTest
 						 unif01.ptr, sres.ptr, N, n,
 						 r, d, k)
 				delete(unif01)
+				@printf "done"
 				return pvalue(sres)
 		end
 
@@ -710,7 +717,7 @@ module RNGTest
 				return pvalue(sres)
 		end
 		function svaria_WeightDistrib(gen::Generator, N::Integer, n::Integer, r::Integer, k::Integer, alpha::Real, beta::Real)
-			println("svaria_WeightDistrib")	
+				@printf "\n svaria_WeightDistrib \t"	
 				unif01 = Unif01(gen, "")
 				sres = ResChi2(N)
 				ccall((:svaria_WeightDistrib, libtestu01), Void,
@@ -719,6 +726,7 @@ module RNGTest
 						 unif01.ptr, sres.ptr, N, n,
 						 r, k, alpha, beta)
 				delete(unif01)
+				@printf "done"
 				return pvalue(sres)
 		end
 
@@ -746,7 +754,7 @@ module RNGTest
 				return pvalue(sres)
 		end
 		function sstring_HammingIndep(gen::Generator, N::Integer, n::Integer, r::Integer, s::Integer, L::Integer, d::Integer)
-			println("sstring_HammingIndep")
+				@printf "\n sstring_HammingIndep \t"
 				unif01 = Unif01(gen, "")
 				sres = StringRes()
 				ccall((:sstring_HammingIndep, libtestu01), Void,
@@ -755,6 +763,7 @@ module RNGTest
 						 unif01.ptr, sres.ptr, N, n,
 						 r, s, L, d)
 				delete(unif01)
+				@printf "done"
 				return pvalue(sres)
 		end
 		function sstring_HammingWeight2(gen::Generator, N::Integer, n::Integer, r::Integer, s::Integer, L::Integer)
@@ -805,7 +814,7 @@ module RNGTest
 
 		## swalk
 		function swalk_RandomWalk1(gen::Generator, N::Integer, n::Integer, r::Integer, s::Integer, L0::Integer, L1::Integer)
-			println("swalk_RandomWalk1")
+				@printf "\n swalk_RandomWalk1 \t"
 				unif01 = Unif01(gen, "")
 				sres = WalkRes(N)
 				ccall((:swalk_RandomWalk1, libtestu01), Void,
@@ -814,6 +823,7 @@ module RNGTest
 						 unif01.ptr, sres.ptr, N, n,
 						 r, s, L0, L1)
 				delete(unif01)
+				@printf	"done"
 				return pvalue(sres)
 		end
 
