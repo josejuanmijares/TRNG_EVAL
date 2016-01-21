@@ -1,0 +1,13 @@
+2016-01-21T10:12:03
+
+TEST smarsa_BirthdaySpacings 	done 0.9337898087053176
+
+TEST sknuth_Collision 	done 0.6759798706697757
+
+TEST sknuth_Gap 	done 0.7817521067327934
+
+ sknuth_SimpPoker 	done 0.4087964978772898
+
+TEST sknuth_CouponCollector 	done 0.7897828979409633
+
+TEST sknuth_MaxOft 	done (1.0,0.0028949885348321658)
