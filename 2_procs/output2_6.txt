@@ -1,0 +1,22 @@
+2016-01-20T21:43:55
+
+TEST smarsa_BirthdaySpacings 	done 0.6829693226124649
+
+TEST sknuth_Collision 	done 0.0
+
+TEST sknuth_Gap 	done 0.33635452802026355
+
+ sknuth_SimpPoker 	done 0.7159035967236294
+
+TEST sknuth_CouponCollector 	done 0.7819940709461619
+
+TEST sknuth_MaxOft 	done (0.0,1.0)
+
+TEST svaria_WeightDistrib 	done 0.8127341595194946
+
+TEST smarsa_MatrixRank 	done 0.37657884651928686
+
+TEST sstring_HammingIndep 	done 0.07927866857771615
+
+TEST swalk_RandomWalk1 	done(0.0,0.0,0.0,0.0,0.0)
+2016-01-21T08:22:29

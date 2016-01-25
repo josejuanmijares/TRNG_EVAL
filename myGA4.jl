@@ -7,14 +7,21 @@ module myGA4
 	
 	type SuperJuice <:AbstractRNG
 		function SuperJuice()
-			y = cell(2,2)
-			y = pmap(long_computation,2^20,2,100,workers())
+			n = nworkers()
+			y = cell(n,2)
+			y = pmap(long_computation,16896,n,100,false,workers())
 			ind = findmin(y[:,2])[2]
 			return y[ind,1]
 		end
+		function SuperJuice(N)
+			n = nworkers()
+			y = cell(n,2)
+			y = pmap(long_computation,16896,n,N,true,workers())
+		end
+			
 	end
 
-	function long_computation(idx, N,kstop)
+	function long_computation(idx, N,kstop,store2file)
 		x = Array(Float64,N)
 		xc = Array(Float64,N)
 		xp = Array(Float64,N) 
@@ -26,6 +33,11 @@ module myGA4
 		x = EHEfast_0to1(rand(N),N)
 		x_score = evaluate(x,N)
 	
+		if store2file
+			csvfile = open(string(myid())*".csv","w")
+			write(csvfile,join( (x_score,xc_score,xp_score), ","),"\n")
+		end
+
 		for k =1:kstop
 			ind_c = doOrder1X0_2(N)
 			xc = copy(x[ind_c])
@@ -34,6 +46,9 @@ module myGA4
 			xp = EHEfast_0to1(rand(N),N)
 			xp_score = evaluate(xp,N)
 			opt = findmin([x_score, xc_score, xp_score])[2]
+			if store2file
+				write(csvfile,join( (x_score,xc_score,xp_score), ","),"\n")
+			end	
 			if opt == 2
 				x = copy(xc)
 				x_score = xc_score
@@ -43,6 +58,10 @@ module myGA4
 				x_score = xp_score
 			end
 		end
+
+		if store2file
+			close(csvfile)
+		end	
 	
 		return x, x_score
 	end
@@ -87,7 +106,7 @@ module myGA4
 		return child1
 	end
 
-	function pmap(f, N, M, kstop, myprocs=workers())
+	function pmap(f, N, M, kstop, save2file, myprocs=workers())
 		np = nprocs()  # determine the number of processes available
 		results = cell(M,2)
 		i = 1
@@ -103,7 +122,7 @@ module myGA4
 		                   if idx > M
 		                       break
 		                   end
-		                   results[idx,1],results[idx,2]  = remotecall_fetch(p, f, idx, N, kstop)
+		                   results[idx,1],results[idx,2]  = remotecall_fetch(p, f, idx, N, kstop, save2file)
 		               end
 		           end
 		       end
