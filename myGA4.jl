@@ -74,7 +74,7 @@ module myGA4
 			close(csvfile)
 		end	
 	
-		return x, x_scre
+		return x, x_score
 	end
 
 	function EHEfast_0to1(xin,N)
