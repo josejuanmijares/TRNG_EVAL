@@ -23,68 +23,58 @@ module myGA4
 
 	function long_computation(idx, N,kstop,nc,store2file)
 		x = Array(Float64,N)
-		if nc==1
-			xc = Array(Float64,N)
-			xc_score::Float64 =0.0
-			ind_c = Array(Int64,N)
-		else
-			xc = Array(Float64,(N,nc))
-			xc_score = Array(Float64,nc)
-			ind_c = Array(Int64,(N,nc))
-		end
+		
+		xc = Array(Float64,(N,nc))
+		xc_score = zeros(Float64,nc)
+		ind_c = Array(Int64,(N,nc))
+		
 		xp = Array(Float64,N) 
 		x_score::Float64 =0.0
 		xp_score::Float64 =0.0
 	
 		x = EHEfast_0to1(rand(N),N)
 		x_score = evaluate(x,N)
-	
+
+		
 		if store2file
 			csvfile = open(string(myid())*".csv","w")
-			write(csvfile,join( (x_score,xc_score,xp_score), ","),"\n")
+			score_tuple = tuple([x_score; xc_score; xp_score]...)
+			write(csvfile,join( score_tuple, ","),"\n")
 		end
 
 		for k =1:kstop
-			if nc==1
-				ind_c = doOrder1X0_2(N)
-				xc = copy(x[ind_c])
-				xc = doShuffleMutation(xc,N,0.1)
-				xc_score = evaluate(xc,N)
+			for kk=1:nc
+				ind_c[:,kk] = doOrder1X0_2(N)
+				xc[:,kk] = copy(x[ind_c[:,kk]])
+				xc[:,kk] = doShuffleMutation(xc[:,kk],N,0.1)
+				xc_score[kk] = evaluate(xc[:,kk],N)
+			end
 			
-				xp = EHEfast_0to1(rand(N),N)
-				xp_score = evaluate(xp,N)
-				opt = findmin([x_score, xc_score, xp_score])[2]
-				if store2file
-					write(csvfile,join( (x_score,xc_score,xp_score), ","),"\n")
-				end	
-				if opt == 2
-					x = copy(xc)
-					x_score = xc_score
-				end
-				if opt == 3
-					x = copy(xp)
-					x_score = xp_score
-				end
-			else
-				for kk=1:nc
-					ind_c[:,kk] = doOrder1X0_2(N)
-					xc[:,kk] = copy(x[ind_c[:,kk]])
-					xc[:,kk] = doShuffleMutation(xc[:,kk],N,0.1)
-					xc_score[kk] = evaluate(xc[:,kk],N)
-					xp = EHEfast_0to1(rand(N),N)
-					xp_score = evaluate(xp,N)
-					opt = findmin([x_score; xc_score; xp_score])[2]
-					##### check this
-					error("check this!!!!")
-				end
-				
+			xp = EHEfast_0to1(rand(N),N)
+			xp_score = evaluate(xp,N)
+			
+			score_tuple = tuple([x_score; xc_score; xp_score]...)
+			opt = findmin(score_tuple)[2]
+			
+			if store2file
+				write(csvfile,join( score_tuple, ","),"\n")
+			end	
+			if opt>1 && opt<(nc+2)
+				x = copy(xc[:,opt-1] )
+				x_score = xc_score[opt-1]
+			end
+			
+			if opt == (nc+2)
+				x = copy(xp)
+				x_score = xp_score
+			end
 		end
 
 		if store2file
 			close(csvfile)
 		end	
 	
-		return x, x_score
+		return x, x_scre
 	end
 
 	function EHEfast_0to1(xin,N)
@@ -143,7 +133,7 @@ module myGA4
 		                   if idx > M
 		                       break
 		                   end
-		                   results[idx,1],results[idx,2]  = remotecall_fetch(p, f, idx, N, nc, kstop, save2file)
+		                   results[idx,1],results[idx,2]  = remotecall_fetch(p, f, idx, N, kstop, nc, save2file)
 		               end
 		           end
 		       end
