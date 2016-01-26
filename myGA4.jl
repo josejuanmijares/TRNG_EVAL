@@ -9,25 +9,31 @@ module myGA4
 		function SuperJuice()
 			n = nworkers()
 			y = cell(n,2)
-			y = pmap(long_computation,16896,n,100,false,workers())
+			y = pmap(long_computation,16896,n,100,1,false,workers())
 			ind = findmin(y[:,2])[2]
 			return y[ind,1]
 		end
-		function SuperJuice(N)
+		function SuperJuice(N,nc)
 			n = nworkers()
 			y = cell(n,2)
-			y = pmap(long_computation,16896,n,N,true,workers())
+			y = pmap(long_computation,16896,n,N,nc,true,workers())
 		end
 			
 	end
 
-	function long_computation(idx, N,kstop,store2file)
+	function long_computation(idx, N,kstop,nc,store2file)
 		x = Array(Float64,N)
-		xc = Array(Float64,N)
+		if nc==1
+			xc = Array(Float64,N)
+			xc_score::Float64 =0.0
+			ind_c = Array(Int64,N)
+		else
+			xc = Array(Float64,(N,nc))
+			xc_score = Array(Float64,nc)
+			ind_c = Array(Int64,(N,nc))
+		end
 		xp = Array(Float64,N) 
-		ind_c = Array(Int64,N)
 		x_score::Float64 =0.0
-		xc_score::Float64 =0.0
 		xp_score::Float64 =0.0
 	
 		x = EHEfast_0to1(rand(N),N)
@@ -39,24 +45,39 @@ module myGA4
 		end
 
 		for k =1:kstop
-			ind_c = doOrder1X0_2(N)
-			xc = copy(x[ind_c])
-			xc = doShuffleMutation(xc,N,0.1)
-			xc_score = evaluate(xc,N)
-			xp = EHEfast_0to1(rand(N),N)
-			xp_score = evaluate(xp,N)
-			opt = findmin([x_score, xc_score, xp_score])[2]
-			if store2file
-				write(csvfile,join( (x_score,xc_score,xp_score), ","),"\n")
-			end	
-			if opt == 2
-				x = copy(xc)
-				x_score = xc_score
-			end
-			if opt == 3
-				x = copy(xp)
-				x_score = xp_score
-			end
+			if nc==1
+				ind_c = doOrder1X0_2(N)
+				xc = copy(x[ind_c])
+				xc = doShuffleMutation(xc,N,0.1)
+				xc_score = evaluate(xc,N)
+			
+				xp = EHEfast_0to1(rand(N),N)
+				xp_score = evaluate(xp,N)
+				opt = findmin([x_score, xc_score, xp_score])[2]
+				if store2file
+					write(csvfile,join( (x_score,xc_score,xp_score), ","),"\n")
+				end	
+				if opt == 2
+					x = copy(xc)
+					x_score = xc_score
+				end
+				if opt == 3
+					x = copy(xp)
+					x_score = xp_score
+				end
+			else
+				for kk=1:nc
+					ind_c[:,kk] = doOrder1X0_2(N)
+					xc[:,kk] = copy(x[ind_c[:,kk]])
+					xc[:,kk] = doShuffleMutation(xc[:,kk],N,0.1)
+					xc_score[kk] = evaluate(xc[:,kk],N)
+					xp = EHEfast_0to1(rand(N),N)
+					xp_score = evaluate(xp,N)
+					opt = findmin([x_score; xc_score; xp_score])[2]
+					##### check this
+					error("check this!!!!")
+				end
+				
 		end
 
 		if store2file
@@ -106,7 +127,7 @@ module myGA4
 		return child1
 	end
 
-	function pmap(f, N, M, kstop, save2file, myprocs=workers())
+	function pmap(f, N, M, kstop, nc, save2file, myprocs=workers())
 		np = nprocs()  # determine the number of processes available
 		results = cell(M,2)
 		i = 1
@@ -122,7 +143,7 @@ module myGA4
 		                   if idx > M
 		                       break
 		                   end
-		                   results[idx,1],results[idx,2]  = remotecall_fetch(p, f, idx, N, kstop, save2file)
+		                   results[idx,1],results[idx,2]  = remotecall_fetch(p, f, idx, N, nc, kstop, save2file)
 		               end
 		           end
 		       end
