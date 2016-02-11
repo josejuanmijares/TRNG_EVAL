@@ -16,7 +16,7 @@ module myGA4
 		function SuperJuice(N,nc)
 			n = nworkers()
 			y = cell(n,2)
-			y = pmap(long_computation1,1024,n,N,nc,true,workers())
+			y = pmap(long_computation0,1024,n,N,nc,true,workers())
 		end
 			
 	end
@@ -89,6 +89,7 @@ module myGA4
 			
 
 	function long_computation0(idx, N,kstop,nc,store2file)
+		filename = "long_run0_th"
 		x = Array(Float64,N)
 		
 		xc = Array(Float64,(N,nc))
@@ -104,9 +105,11 @@ module myGA4
 
 		
 		if store2file
-			csvfile = open(string(myid())*".csv","w")
+			csvfile = open(filename*string(myid())*".csv","w")
+			csvfile2 = open(filename*string(myid())*"_extended"*".csv","w")
 			score_tuple = tuple([x_score; xc_score; xp_score]...)
 			write(csvfile,join( score_tuple, ","),"\n")
+			write(csvfile2,join( x, ","),"\n")
 		end
 
 		for k =1:kstop
@@ -122,10 +125,7 @@ module myGA4
 			
 			score_tuple = tuple([x_score; xc_score; xp_score]...)
 			opt = findmin(score_tuple)[2]
-			
-			if store2file
-				write(csvfile,join( score_tuple, ","),"\n")
-			end	
+				
 			if opt>1 && opt<(nc+2)
 				x = copy(xc[:,opt-1] )
 				x_score = xc_score[opt-1]
@@ -135,10 +135,16 @@ module myGA4
 				x = copy(xp)
 				x_score = xp_score
 			end
+			
+			if store2file
+				write(csvfile,join( score_tuple, ","),"\n")
+				write(csvfile2,join( x, ","),"\n")
+			end
 		end
 
 		if store2file
 			close(csvfile)
+			close(csvfile2)
 		end	
 	
 		return x, x_score
